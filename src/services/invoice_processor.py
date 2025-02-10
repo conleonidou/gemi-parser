@@ -8,8 +8,7 @@ from src.models.invoice import Invoice
 def initialize_gemini_client():
     """Initialize the Gemini API client"""
     try:
-        API_KEY = "AIzaSyA5ICRWB682B8FyVfVb3fYAIwCyb6xgmes"
-        # API_KEY = st.secrets('GOOGLE_API_KEY')
+        API_KEY = st.secrets('GOOGLE_API_KEY')
         if not API_KEY:
             st.error("Please set your GOOGLE_API_KEY in the .env file")
             st.stop()
