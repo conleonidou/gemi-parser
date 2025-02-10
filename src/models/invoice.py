@@ -29,7 +29,7 @@ class Party(BaseModel):
     state: str | None = Field(None, description="State or region")
     postal_code: str | None = Field(None, description="Postal or ZIP code")
     country: str | None = Field(None, description="Country")
-    email: str | None = Field(None, description="Email address")
+    email: str | None = Field(None, description="Email address usually contains @ symbol")
     phone: str | None = Field(None, description="Phone number")
     website: str | None = Field(None, description="Website URL")
     tax_id: str | None = Field(None, description="Tax identification number")
