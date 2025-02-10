@@ -1,2 +1,2 @@
 # gemi-parser
-Gemini Flash Parser for invoices.
+Gemini 2.0 Flash Parser for invoices.
