@@ -2,6 +2,7 @@ import streamlit as st
 import base64
 from src.services.invoice_processor import process_invoice
 from src.utils.data_preparation import prepare_line_items_table, prepare_vat_table
+from streamlit_pdf_viewer import pdf_viewer
 
 # Configure page
 st.set_page_config(page_title="Flash Invoice Intelligence", layout="wide")
@@ -24,10 +25,9 @@ with st.sidebar:
         st.subheader("PDF Preview")
         # Using native document display
         with st.expander("View PDF", expanded=True):
-            show_pdf = st.markdown(f"""
-                <iframe src="data:application/pdf;base64,{base64.b64encode(uploaded_file.getvalue()).decode('utf-8')}" 
-                width="400" height="500" type="application/pdf"></iframe>
-                """, unsafe_allow_html=True)
+            binary_data = uploaded_file.getvalue()
+            pdf_viewer(input=binary_data,
+                        width=700)
 
 # Check if a new file is uploaded
 if uploaded_file is not None:

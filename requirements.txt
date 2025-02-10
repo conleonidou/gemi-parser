@@ -3,3 +3,4 @@ google-generativeai
 streamlit
 pydantic
 google-genai
+streamlit-pdf-viewer
