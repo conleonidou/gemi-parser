@@ -1,11 +1,11 @@
 import streamlit as st
-import base64
 from src.services.invoice_processor import process_invoice
 from src.utils.data_preparation import prepare_line_items_table, prepare_vat_table
 from streamlit_pdf_viewer import pdf_viewer
 
 # Configure page
 st.set_page_config(page_title="Flash Invoice Intelligence", layout="wide")
+st.title("Gemi-Parser")
 
 # Initialize session state
 if 'invoice_data' not in st.session_state:
@@ -14,12 +14,9 @@ if 'uploaded_file' not in st.session_state:
     st.session_state.uploaded_file = None
 
 # Sidebar for file upload and PDF preview
-with st.sidebar:
-    st.title("Flash Invoice Intelligence")
-    
+with st.sidebar:    
     # File uploader in sidebar
     uploaded_file = st.file_uploader("Upload an invoice (pdf)", type=['pdf'])
-    
     # PDF Preview 
     if uploaded_file is not None:
         st.subheader("PDF Preview")
@@ -41,7 +38,8 @@ if st.session_state.invoice_data is not None:
     invoice_data = st.session_state.invoice_data
     
     # Invoice Details
-    st.header("Invoice Details")
+    st.subheader("Sample Invoice Details")
+    st.divider()
     
     col1, col2 = st.columns(2)
     
@@ -71,7 +69,7 @@ if st.session_state.invoice_data is not None:
     
     # Add download button for JSON
     st.download_button(
-        label="Download JSON",
+        label="Download Complete JSON",
         data=invoice_data.model_dump_json(indent=2),
         file_name="invoice_data.json",
         mime="application/json"
