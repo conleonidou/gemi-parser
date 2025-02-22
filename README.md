@@ -1,20 +1,17 @@
-### Gemini 2.0 Flash Parser Documentation
-#### Overview
-The Gemini 2.0 Flash Parser is a tool designed to parse invoices, built using [Streamlit](https://streamlit.io/).
+# Gemini 2.0 Flash Parser for Invoices
+The Gemini 2.0 Flash Parser is a tool designed to parse invoices, built using the Streamlit library.
 
-#### Important Notice
-**Use with Caution**: This parser is provided as-is, and users are advised to exercise caution when utilizing it, especially with sensitive or critical data.
+## Usage
+Access the parser through the [Streamlit App](https://gemi-parser.streamlit.app/). **Use with caution**, as the parser may not work correctly for all invoices.
 
-#### Functionality
-The parser supports standard invoice formats (PDF, CSV, XML) and handles common parsing errors. It extracts relevant data, including invoice numbers, dates, and totals.
+## Technical Details
+Implemented in Python, using Streamlit for the web interface. The `app.py` file imports necessary modules.
 
-#### Library Information
-This application relies on [Streamlit](https://streamlit.io/), a Python library for creating web apps. Streamlit dependencies are managed automatically.
+## Getting Started
+1. Install Streamlit using `pip install streamlit`.
+2. Run the app using `streamlit run app.py`.
 
-#### Usage
-1. Navigate to the [Streamlit App](https://gemi-parser.streamlit.app/).
-2. Upload your invoice file.
-3. Review the parsed data.
+## Limitations
+Beta version; may not work correctly for all use cases. Report issues to improve the parser.
 
-#### Disclaimer
-The developers are not responsible for any damages or losses resulting from the use of this tool. By using this parser, you acknowledge that you have read, understood, and agreed to these terms.
+**Note:** Use the parser with caution, as accuracy is not guaranteed. Verify results and report issues to improve the parser. Future updates will include details on invoice format, troubleshooting, and contributing guidelines.
