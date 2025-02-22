@@ -1,52 +1,53 @@
-### Gemini 2.0 Flash Parser for Invoices Documentation
-#### Overview
-The Gemini 2.0 Flash Parser is a tool designed to parse invoices. It is available as a [Streamlit App](https://gemi-parser.streamlit.app/).
+### Gemini 2.0 Flash Parser Documentation
+#### Introduction
+The Gemini 2.0 Flash Parser is a tool designed to parse invoices. It is built on top of the Streamlit library, which allows for the creation of web-based data science applications. The parser can be accessed through the [Streamlit App](https://gemi-parser.streamlit.app/).
 
-#### Important Notice
-**Use with Caution**: This application is provided as-is, and users are advised to exercise caution when utilizing it, especially with sensitive or confidential data.
+#### Usage
+To use the parser, follow these steps:
+1. Visit the [Streamlit App](https://gemi-parser.streamlit.app/) to access the parser.
+2. Upload your invoice to the parser.
+3. Follow the on-screen instructions to configure the parser settings.
+4. Parse the data and verify the accuracy of the output.
+
+**Important:** Use the parser with caution, as it may not work correctly with all types of documents or configurations.
 
 #### Library Information
-This application is built using [Streamlit](https://streamlit.io/), a Python library that allows for the creation of web apps for data science and machine learning in a simple and straightforward way. To use Streamlit, you will need to have Python installed on your system. You can install Streamlit using pip:
-```bash
-pip install streamlit
-```
-The Gemini 2.0 Flash Parser also relies on the following dependencies:
-* `pandas` for data manipulation and analysis
-* `numpy` for numerical computations
+* **Streamlit**: A Python library that makes it easy to create and share data apps. The Gemini 2.0 Flash Parser utilizes Streamlit's features, such as:
+	+ Data upload and processing
+	+ Interactive widgets for configuration
+	+ Real-time output display
+	+ Support for various data formats
 
-You can install these dependencies using pip:
-```bash
-pip install pandas numpy
-```
-Here's an example of how to use these libraries:
-```python
-import pandas as pd
-import numpy as np
-import streamlit as st
+#### Configuration
+To configure the parser, follow these steps:
+1. Upload your invoice to the parser.
+2. Select the invoice type and format from the available options.
+3. Adjust the parser settings as needed, such as:
+	+ Date format
+	+ Currency format
+	+ Tax rate
+4. Save the configuration settings.
 
-# Create a sample DataFrame
-data = {'Name': ['John', 'Anna', 'Peter', 'Linda'],
-        'Age': [28, 24, 35, 32],
-        'Country': ['USA', 'UK', 'Australia', 'Germany']}
-df = pd.DataFrame(data)
+#### Error Handling
+If you encounter any issues with the parser, refer to the troubleshooting section below. Common errors include:
+* Unsupported invoice format
+* Incorrect configuration settings
+* Data processing errors
 
-# Display the DataFrame
-st.write(df)
+#### Troubleshooting
+If you encounter any issues with the parser, check the following:
+* Ensure that your invoice is in a supported format.
+* Verify that the parser is correctly configured.
+* Check the data upload and processing logs for errors.
+* Refer to the Streamlit library documentation for additional troubleshooting tips.
 
-# Perform numerical computations
-array = np.array([1, 2, 3, 4, 5])
-st.write(np.mean(array))
-```
-#### Configuration Options
-The Gemini 2.0 Flash Parser can be configured to parse invoices in different formats. The following options are available:
-* `invoice_format`: specifies the format of the invoice (e.g. PDF, CSV, etc.)
-* `output_format`: specifies the format of the output (e.g. CSV, JSON, etc.)
+#### Technical Specifications
+* **System Requirements**: The parser is compatible with modern web browsers and operating systems.
+* **Compatibility**: The parser supports invoices in PDF, CSV, and Excel formats.
+* **Dependencies**: The parser relies on the Streamlit library and its dependencies, including:
+	+ Python 3.7+
+	+ Streamlit 0.80+
+	+ Pandas 1.2+
+	+ NumPy 1.20+
 
-You can configure these options by passing them as arguments to the `parse_invoice` function. For example:
-```python
-import streamlit as st
-
-st.parse_invoice(invoice_format="PDF", output_format="CSV")
-```
 #### Getting Started
-To use the Gemini 2.0 Flash Parser, simply navigate to the [Streamlit App URL](https://gemi-parser.streamlit.app/)
