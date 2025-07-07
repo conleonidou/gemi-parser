@@ -4,17 +4,21 @@ from google import genai
 import streamlit as st
 from pydantic import BaseModel
 from src.models.invoice import Invoice
+from dotenv import load_dotenv
+# Load environment variables from .env file
+load_dotenv()
 
 def initialize_gemini_client():
     """Initialize the Gemini API client"""
     try:
-        API_KEY = st.secrets["GOOGLE_API_KEY"]
+        # API_KEY = st.secrets["GOOGLE_API_KEY"]
+        API_KEY = os.getenv("GOOGLE_API_KEY")
         if not API_KEY:
             st.error("Please set your GOOGLE_API_KEY in the .env file")
             st.stop()
         
         client = genai.Client(api_key=API_KEY)
-        return client, "gemini-2.0-flash"
+        return client, "gemini-2.5-pro"
     except Exception as e:
         st.error(f"Error initializing Gemini client: {str(e)}")
         st.stop()
@@ -30,7 +34,7 @@ def extract_structured_data(file_path: str, model: BaseModel):
     )
     
     # Generate a structured response using the Gemini API
-    prompt = f"Extract the structured data from the following PDF file"
+    prompt = f"Εξαγάγετε τα δομημένα δεδομένα από το ακόλουθο τιμολόγιο σε μορφή PDF με χειρόγραφο κείμενο στα ελληνικά. Δεν είναι «Ποκουμάδες» αντί για «Λοκουμάδες». Δώσε ιδιαίτερη προσοχή στη γραμματική στα ελληνικά."
     response = client.models.generate_content(
         model=model_id,
         contents=[prompt, file],

@@ -3,7 +3,7 @@ from typing import List
 
 class LineItem(BaseModel):
     amount: float = Field(description="The total amount for this line item")
-    description: str | None = Field(None, description="Description of the item or service")
+    description: str | None = Field(None, description="Description of the item or service. Δεν είναι «Ποκουμάδες» αντί για «Λοκουμάδες».")
     product_code: str | None = Field(None, description="Product or service code")
     quantity: int = Field(description="Quantity of items")
     unit: str | None = Field(None, description="Unit of measurement (e.g., pcs, hours)")

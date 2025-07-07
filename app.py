@@ -4,8 +4,8 @@ from src.utils.data_preparation import prepare_line_items_table, prepare_vat_tab
 from streamlit_pdf_viewer import pdf_viewer
 
 # Configure page
-st.set_page_config(page_title="Flash Invoice Intelligence", layout="wide")
-st.title("Gemi-Parser")
+st.set_page_config(page_title="Invoice Intelligence", layout="wide")
+st.title("Invoice Intelligent OCR")
 
 # Initialize session state
 if 'invoice_data' not in st.session_state:
@@ -38,7 +38,7 @@ if st.session_state.invoice_data is not None:
     invoice_data = st.session_state.invoice_data
     
     # Invoice Details
-    st.subheader("Sample Invoice Details")
+    st.subheader("Parsed Invoice Details")
     st.divider()
     
     col1, col2 = st.columns(2)
