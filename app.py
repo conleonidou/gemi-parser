@@ -1,5 +1,5 @@
 import streamlit as st
-from src.services.invoice_processor import process_invoice
+from src.services.invoice_processor import process_invoice, extract_doc_layout, draw_bounding_boxes
 from src.utils.data_preparation import prepare_line_items_table, prepare_vat_table
 from streamlit_pdf_viewer import pdf_viewer
 
@@ -66,7 +66,16 @@ if st.session_state.invoice_data is not None:
     st.subheader("VAT Details")
     vat_df = prepare_vat_table(invoice_data.vat)
     st.dataframe(vat_df, use_container_width=True)
-    
+
+    # TODO: Prepare image with bounding boxes
+    st.subheader("Extracted fields")
+    layout = extract_doc_layout(uploaded_file.getvalue(), invoice_data)
+    draw_bounding_boxes(uploaded_file, layout)
+    # with st.expander("Processed PDF", expanded=True):
+    #     binary_data = uploaded_file.getvalue()
+    #     pdf_viewer(input=binary_data, width=700)
+
+
     # Add download button for JSON
     st.download_button(
         label="Download Complete JSON",

@@ -4,3 +4,4 @@ streamlit
 pydantic
 google-genai
 streamlit-pdf-viewer
+pymupdf
