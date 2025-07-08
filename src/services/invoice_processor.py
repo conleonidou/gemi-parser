@@ -1,6 +1,7 @@
 import fitz
 import tempfile
 import os
+from itertools import chain
 from google import genai
 import streamlit as st
 from pydantic import BaseModel
@@ -8,6 +9,7 @@ from src.models.invoice import Invoice
 from dotenv import load_dotenv
 from azure.ai.documentintelligence import DocumentIntelligenceClient
 from azure.core.credentials import AzureKeyCredential
+from transliterate import translit
 
 # Load environment variables from .env file
 load_dotenv()
@@ -70,6 +72,41 @@ def process_invoice(uploaded_file):
         st.error(f"Error processing the PDF: {str(e)}")
         return None
     
+def string_similarity(s1, s2):
+    def levenshtein(a, b):
+        len_a, len_b = len(a), len(b)
+        dp = [[0] * (len_b + 1) for _ in range(len_a + 1)]
+
+        for i in range(len_a + 1):
+            dp[i][0] = i
+        for j in range(len_b + 1):
+            dp[0][j] = j
+
+        for i in range(1, len_a + 1):
+            for j in range(1, len_b + 1):
+                cost = 0 if a[i - 1] == b[j - 1] else 1
+                dp[i][j] = min(
+                    dp[i - 1][j] + 1,      # deletion
+                    dp[i][j - 1] + 1,      # insertion
+                    dp[i - 1][j - 1] + cost  # substitution
+                )
+        return dp[len_a][len_b]
+
+    if isinstance(s2, list):
+        return 0.0
+    tokens = s2.split()
+    
+    if not tokens:
+        return 0.0
+
+    def similarity(a, b):
+        max_len = max(len(a), len(b))
+        if max_len == 0:
+            return 1.0
+        return 1 - (levenshtein(a, b) / max_len)
+
+    return max(similarity(s1, token) for token in tokens)
+    
 def extract_doc_layout(uploaded_file, invoice_data):
     # This function should implement the logic to draw bounding boxes
     # on the PDF based on the extracted fields.
@@ -77,11 +114,9 @@ def extract_doc_layout(uploaded_file, invoice_data):
     fields_to_draw = {
         "invoice_id": invoice_data.invoice_id,
         "invoice_date": invoice_data.invoice_date,
-        "payment_terms": invoice_data.payment_terms,
         "supplier.name": invoice_data.supplier.name,
         "supplier.email": invoice_data.supplier.email,
         "supplier.phone": invoice_data.supplier.phone,
-        "line_items": invoice_data.line_items,
         "vat": invoice_data.vat
     }
 
@@ -111,13 +146,44 @@ def extract_doc_layout(uploaded_file, invoice_data):
     #     list(fields_to_draw.keys())[list(fields_to_draw.values()).index(item['content'])]: item for i, item in enumerate(data) if item['content'] in fields_to_draw.values()
     # }
 
-    for field in fields_to_extract:
-        if len(res['documents']) == 0 or field not in res['documents'][0]['fields'] or 'boundingRegions' not in res['documents'][0]['fields'][field]:
-            layout[field] = None
+    for entry in fields_to_extract:
+        if len(res['documents']) == 0 or entry not in res['documents'][0]['fields'] or 'boundingRegions' not in res['documents'][0]['fields'][entry]:
+            layout[entry] = None
             continue
         
-        layout[field] = res['documents'][0]['fields'][field]['boundingRegions'][0]['polygon']
+        layout[entry] = [res['documents'][0]['fields'][entry]['boundingRegions'][0]['polygon']]
     
+    # Some fields may not have been recognized in the document. Try to find them by string similarity
+    for entry in data:
+        if entry not in layout.values() and len(entry) > 2:
+            # Find the closest match in the recognized words
+            closest_match = None
+            highest_similarity = 0.0
+            similarity_threshold = 0.6
+            
+            for i, item in enumerate(fields_to_draw.values()):
+                if item is None:
+                    continue
+
+                item = translit(item, 'el', reversed=True) if isinstance(item, str) else item
+                similarity = string_similarity(entry['content'], item)
+
+                # if list(fields_to_draw.keys())[i] == 'supplier.name':
+                #     print(f"Comparing {entry['content']} with {item} - similarity: {similarity}")
+
+                if similarity > highest_similarity and similarity > similarity_threshold:
+                    highest_similarity = similarity
+                    entry['name'] = list(fields_to_draw.keys())[i]
+                    closest_match = entry
+            
+            if closest_match is not None:
+                print("Adding closest match:", closest_match['name'], "with similarity:", highest_similarity)
+
+                if closest_match['name'] in layout and closest_match['polygon'] is not None:
+                    layout[closest_match['name']] += [closest_match['polygon']]
+                else:
+                    layout[closest_match['name']] = [closest_match['polygon']]
+            
     return layout
 
 def draw_bounding_boxes(uploaded_file, layout, inches_multiplier = 72):
@@ -137,6 +203,8 @@ def draw_bounding_boxes(uploaded_file, layout, inches_multiplier = 72):
     for polygon in layout.values():
         if polygon is None:
             continue
+
+        polygon = list(chain.from_iterable(polygon))
         
         ys = polygon[::2]
         ys = [y * inches_multiplier for y in ys]
