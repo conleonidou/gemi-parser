@@ -40,7 +40,7 @@ def extract_structured_data(file_path: str, model: BaseModel):
     )
     
     # Generate a structured response using the Gemini API
-    prompt = f"Εξαγάγετε τα δομημένα δεδομένα από το ακόλουθο τιμολόγιο σε μορφή PDF με χειρόγραφο κείμενο στα ελληνικά. Δεν είναι «Ποκουμάδες» αντί για «Λοκουμάδες». Δώσε ιδιαίτερη προσοχή στη γραμματική στα ελληνικά."
+    prompt = f"Εξαγάγετε τα δεδομένα από το ακόλουθο τιμολόγιο σε μορφή PDF με χειρόγραφο κείμενο στα ελληνικά. Δεν είναι «Ποκουμάδες» αντί για «Λοκουμάδες». Δώσε ιδιαίτερη προσοχή στη γραμματική στα ελληνικά."
     response = client.models.generate_content(
         model=model_id,
         contents=[prompt, file],
@@ -186,10 +186,10 @@ def extract_doc_layout(uploaded_file, invoice_data):
             
     return layout
 
-def draw_bounding_boxes(uploaded_file, layout, inches_multiplier = 72):
-    """Draw bounding boxes on the PDF based on the extracted layout"""
+def draw_bounding_boxes(uploaded_file, layout, inches_multiplier=72):
+    """Draw bounding boxes on the PDF based on the extracted layout and return temporary file path"""
     # This function implements the logic to draw bounding boxes
-    # on the PDF using a library like PyMuPDF or pdfplumber.
+    # on the PDF using PyMuPDF and returns the path to the temporary file.
 
     with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp_file:
         tmp_file.write(uploaded_file.getvalue())
@@ -227,8 +227,15 @@ def draw_bounding_boxes(uploaded_file, layout, inches_multiplier = 72):
             )
         page.draw_rect(rect, color=(1, 0, 0), width=1.5)  # RGB: Red
 
-    # Save the modified PDF
-    doc.save("output_with_boxes.pdf")
+    # Create a temporary file for the output
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as output_tmp:
+        output_tmp_path = output_tmp.name
+    
+    # Save the modified PDF to the temporary file
+    doc.save(output_tmp_path)
     doc.close()
     
-    return
+    # Clean up the input temporary file
+    os.unlink(tmp_file_path)
+    
+    return output_tmp_path

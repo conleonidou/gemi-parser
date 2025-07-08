@@ -12,5 +12,7 @@ dependencies = [
     "pydantic>=2.11.7",
     "streamlit>=1.46.1",
     "streamlit-pdf-viewer>=0.0.26",
-    "pymupdf>=1.26.3"
+    "pymupdf>=1.26.3",
+    "azure-ai-documentintelligence>=1.0.2",
+    "transliterate>=1.10.2",
 ]

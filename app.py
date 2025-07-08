@@ -1,7 +1,26 @@
 import streamlit as st
+import os
+import tempfile
+import fitz  # PyMuPDF for PDF to image conversion
 from src.services.invoice_processor import process_invoice, extract_doc_layout, draw_bounding_boxes
 from src.utils.data_preparation import prepare_line_items_table, prepare_vat_table
 from streamlit_pdf_viewer import pdf_viewer
+
+def convert_pdf_to_images(pdf_path):
+    """Convert PDF to images for display in Streamlit"""
+    doc = fitz.open(pdf_path)
+    images = []
+    
+    for page_num in range(len(doc)):
+        page = doc[page_num]
+        # Convert to image with higher resolution for better quality
+        mat = fitz.Matrix(2, 2)  # 2x zoom for better quality
+        pix = page.get_pixmap(matrix=mat)
+        img_data = pix.tobytes("png")
+        images.append(img_data)
+    
+    doc.close()
+    return images
 
 # Configure page
 st.set_page_config(page_title="Invoice Intelligence", layout="wide")
@@ -67,14 +86,51 @@ if st.session_state.invoice_data is not None:
     vat_df = prepare_vat_table(invoice_data.vat)
     st.dataframe(vat_df, use_container_width=True)
 
-    # TODO: Prepare image with bounding boxes
+    # Extracted fields with bounding boxes
     st.subheader("Extracted fields")
-    layout = extract_doc_layout(uploaded_file.getvalue(), invoice_data)
-    draw_bounding_boxes(uploaded_file, layout)
-    # with st.expander("Processed PDF", expanded=True):
-    #     binary_data = uploaded_file.getvalue()
-    #     pdf_viewer(input=binary_data, width=700)
-
+    try:
+        with st.spinner("Processing field detection..."):
+            # Reset file pointer
+            uploaded_file.seek(0)
+            layout = extract_doc_layout(uploaded_file.getvalue(), invoice_data)
+            
+            # Reset file pointer again
+            uploaded_file.seek(0)
+            output_pdf_path = draw_bounding_boxes(uploaded_file, layout)
+        
+        # Display PDF with bounding boxes
+        with st.expander("PDF with Detected Fields", expanded=True):
+            try:
+                # Convert PDF to images for display
+                images = convert_pdf_to_images(output_pdf_path)
+                
+                # Display images
+                for i, img_data in enumerate(images):
+                    st.image(img_data, caption=f"Page {i+1} - Fields highlighted in red", use_container_width=True)
+                
+                # Provide download button for the processed PDF
+                with open(output_pdf_path, "rb") as file:
+                    pdf_data = file.read()
+                
+                st.download_button(
+                    label="Download PDF with Bounding Boxes",
+                    data=pdf_data,
+                    file_name=f"processed_{uploaded_file.name}",
+                    mime="application/pdf"
+                )
+                
+            except Exception as e:
+                st.error(f"Error displaying PDF with bounding boxes: {str(e)}")
+            
+            finally:
+                # Clean up temporary file
+                try:
+                    os.unlink(output_pdf_path)
+                except:
+                    pass  # File might already be deleted
+    
+    except Exception as e:
+        st.error(f"Error processing field detection: {str(e)}")
 
     # Add download button for JSON
     st.download_button(
