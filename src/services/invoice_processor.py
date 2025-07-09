@@ -114,6 +114,7 @@ def extract_doc_layout(uploaded_file, invoice_data):
     fields_to_draw = {
         "invoice_id": invoice_data.invoice_id,
         "invoice_date": invoice_data.invoice_date,
+        "line_items": invoice_data.line_items,
         "supplier.name": invoice_data.supplier.name,
         "supplier.email": invoice_data.supplier.email,
         "supplier.phone": invoice_data.supplier.phone,
@@ -149,11 +150,14 @@ def extract_doc_layout(uploaded_file, invoice_data):
     # }
 
     for entry in fields_to_extract:
-        if len(res['documents']) == 0 or entry not in res['documents'][0]['fields'] or 'boundingRegions' not in res['documents'][0]['fields'][entry]:
+        if len(res['documents']) == 0 or entry not in res['documents'][0]['fields']:
             layout[entry] = None
             continue
-        
-        layout[entry] = [res['documents'][0]['fields'][entry]['boundingRegions'][0]['polygon']]
+
+        if 'valueArray' in res['documents'][0]['fields'][entry]:
+            layout[entry] = [x['boundingRegions'][0]['polygon'] for x in res['documents'][0]['fields'][entry]['valueArray']]
+        elif 'boundingRegions' in res['documents'][0]['fields'][entry]:
+            layout[entry] = [res['documents'][0]['fields'][entry]['boundingRegions'][0]['polygon']]
     
     # Some fields may not have been recognized in the document. Try to find them by string similarity
     for entry in data:
