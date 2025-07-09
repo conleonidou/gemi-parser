@@ -92,11 +92,11 @@ if st.session_state.invoice_data is not None:
         with st.spinner("Processing field detection..."):
             # Reset file pointer
             uploaded_file.seek(0)
-            layout = extract_doc_layout(uploaded_file.getvalue(), invoice_data)
+            layout, angle, is_in_inches = extract_doc_layout(uploaded_file.getvalue(), invoice_data)
             
             # Reset file pointer again
             uploaded_file.seek(0)
-            output_pdf_path = draw_bounding_boxes(uploaded_file, layout)
+            output_pdf_path = draw_bounding_boxes(uploaded_file, layout, angle, is_in_inches)
         
         # Display PDF with bounding boxes
         with st.expander("PDF with Detected Fields", expanded=True):

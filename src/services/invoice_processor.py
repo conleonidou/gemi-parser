@@ -135,6 +135,8 @@ def extract_doc_layout(uploaded_file, invoice_data):
 
     # Wait for the result
     res = poller.result()
+    angle = res['pages'][0]['angle']
+    is_in_inches = res['pages'][0]['unit'] == 'inch'
     data = res.as_dict()['pages'][0]['words']
 
     layout = {}
@@ -173,31 +175,42 @@ def extract_doc_layout(uploaded_file, invoice_data):
 
                 if similarity > highest_similarity and similarity > similarity_threshold:
                     highest_similarity = similarity
+                    # print(f"Found a match: {entry['content']} with {item} - similarity: {similarity}")
                     entry['name'] = list(fields_to_draw.keys())[i]
                     closest_match = entry
             
             if closest_match is not None:
-                print("Adding closest match:", closest_match['name'], "with similarity:", highest_similarity)
+                # print("Adding closest match:", closest_match['name'], "with similarity:", highest_similarity)
 
                 if closest_match['name'] in layout and closest_match['polygon'] is not None:
                     layout[closest_match['name']] += [closest_match['polygon']]
                 else:
                     layout[closest_match['name']] = [closest_match['polygon']]
-            
-    return layout
+    
+    return layout, angle, is_in_inches
 
-def draw_bounding_boxes(uploaded_file, layout, inches_multiplier=72):
+def draw_bounding_boxes(uploaded_file, layout, angle, is_in_inches=False, inches_multiplier=72):
     """Draw bounding boxes on the PDF based on the extracted layout and return temporary file path"""
     # This function implements the logic to draw bounding boxes
     # on the PDF using PyMuPDF and returns the path to the temporary file.
 
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp_file:
-        tmp_file.write(uploaded_file.getvalue())
-        tmp_file_path = tmp_file.name
+    # with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp_file:
+    #     tmp_file.write(uploaded_file.getvalue())
+    #     tmp_file_path = tmp_file.name
+
+    # print(tmp_file_path)
 
     # Load the PDF
-    doc = fitz.open(tmp_file_path)
-    page_width = doc[0].rect.width
+    doc = fitz.open(stream=uploaded_file.getvalue(), filetype="pdf")
+    # doc = fitz.open(tmp_file_path)
+
+    multiplier = 1 if not is_in_inches else inches_multiplier
+    is_vertical = 85 < angle < 95 or 265 < angle < 275
+
+    if is_vertical:
+        size_adj = doc[0].rect.height
+    else:
+        size_adj = doc[0].rect.width
 
     # Draw red rectangles
     for polygon in layout.values():
@@ -205,18 +218,27 @@ def draw_bounding_boxes(uploaded_file, layout, inches_multiplier=72):
             continue
 
         polygon = list(chain.from_iterable(polygon))
-        
-        ys = polygon[::2]
-        ys = [y * inches_multiplier for y in ys]
-        xs = polygon[1::2]
-        xs = [x * inches_multiplier for x in xs]
 
+        if not is_vertical:    
+            ys = polygon[::2]
+            xs = polygon[1::2]
+        else:
+            xs = polygon[::2]
+            ys = polygon[1::2]
+
+        ys = [y * multiplier for y in ys]
+        xs = [x * multiplier for x in xs]
+    
         x0, x1 = min(xs), max(xs)
         y0, y1 = min(ys), max(ys)
 
         # Convert normalized coords to absolute PDF coordinates
-        y1_abs = page_width - y0
-        y0_abs = page_width - y1
+        if is_vertical:
+            y1_abs = y1
+            y0_abs = y0
+        else:
+            y1_abs = size_adj - y0
+            y0_abs = size_adj - y1
                 
         page = doc[0]
         rect = fitz.Rect(
@@ -224,7 +246,7 @@ def draw_bounding_boxes(uploaded_file, layout, inches_multiplier=72):
             x1=x1, 
             y0=y0_abs, 
             y1=y1_abs # x1
-            )
+        )
         page.draw_rect(rect, color=(1, 0, 0), width=1.5)  # RGB: Red
 
     # Create a temporary file for the output
@@ -236,6 +258,6 @@ def draw_bounding_boxes(uploaded_file, layout, inches_multiplier=72):
     doc.close()
     
     # Clean up the input temporary file
-    os.unlink(tmp_file_path)
+    # os.unlink(tmp_file_path)
     
     return output_tmp_path
