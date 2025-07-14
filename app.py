@@ -1,28 +1,10 @@
 import streamlit as st
-import os
 import tempfile
-import fitz  # PyMuPDF for PDF to image conversion
 from src.services.invoice_processor import process_invoice, extract_doc_layout, draw_bounding_boxes
 from src.utils.data_preparation import prepare_line_items_table, prepare_vat_table
 from streamlit_pdf_viewer import pdf_viewer
 from streamlit_image_viewer import image_viewer
-from src.utils.helpers import get_pdf_like
-
-def convert_pdf_to_images(pdf_path):
-    """Convert PDF to images for display in Streamlit"""
-    doc = fitz.open(pdf_path)
-    images = []
-    
-    for page_num in range(len(doc)):
-        page = doc[page_num]
-        # Convert to image with higher resolution for better quality
-        mat = fitz.Matrix(2, 2)  # 2x zoom for better quality
-        pix = page.get_pixmap(matrix=mat)
-        img_data = pix.tobytes("png")
-        images.append(img_data)
-    
-    doc.close()
-    return images
+from src.utils.helpers import get_pdf_like, convert_pdf_to_images
 
 # Configure page
 st.set_page_config(page_title="Invoice Intelligence", layout="wide")

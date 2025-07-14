@@ -3,6 +3,7 @@ import tempfile
 import os
 from io import BytesIO
 from pathlib import Path
+import fitz  # PyMuPDF for PDF handling
 
 def convert_image_to_pdf(uploaded_file):
     """Convert an uploaded image (jpeg/png) to a proper single-page PDF"""
@@ -33,3 +34,19 @@ def get_pdf_like(uploaded_file) -> BytesIO:
     bio = BytesIO(pdf_bytes)
     bio.name = Path(uploaded_file.name).stem + ".pdf"
     return bio
+
+def convert_pdf_to_images(pdf_path):
+    """Convert PDF to images for display in Streamlit"""
+    doc = fitz.open(pdf_path)
+    images = []
+    
+    for page_num in range(len(doc)):
+        page = doc[page_num]
+        # Convert to image with higher resolution for better quality
+        mat = fitz.Matrix(2, 2)  # 2x zoom for better quality
+        pix = page.get_pixmap(matrix=mat)
+        img_data = pix.tobytes("png")
+        images.append(img_data)
+    
+    doc.close()
+    return images
