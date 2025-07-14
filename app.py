@@ -5,6 +5,8 @@ import fitz  # PyMuPDF for PDF to image conversion
 from src.services.invoice_processor import process_invoice, extract_doc_layout, draw_bounding_boxes
 from src.utils.data_preparation import prepare_line_items_table, prepare_vat_table
 from streamlit_pdf_viewer import pdf_viewer
+from streamlit_image_viewer import image_viewer
+from src.utils.helpers import get_pdf_like
 
 def convert_pdf_to_images(pdf_path):
     """Convert PDF to images for display in Streamlit"""
@@ -33,17 +35,29 @@ if 'uploaded_file' not in st.session_state:
     st.session_state.uploaded_file = None
 
 # Sidebar for file upload and PDF preview
-with st.sidebar:    
-    # File uploader in sidebar
-    uploaded_file = st.file_uploader("Upload an invoice (pdf)", type=['pdf'])
-    # PDF Preview 
+with st.sidebar:
+    uploaded_file = st.file_uploader("Upload an invoice (pdf, jpeg, png)", type=['pdf', 'jpeg', 'png'], key="file_uploader")
+
     if uploaded_file is not None:
-        st.subheader("PDF Preview")
-        # Using native document display
-        with st.expander("View PDF", expanded=True):
-            binary_data = uploaded_file.getvalue()
-            pdf_viewer(input=binary_data,
-                        width=700)
+        file_type = uploaded_file.type
+
+        if file_type == "application/pdf":
+            st.subheader("PDF Preview")
+            with st.expander("View PDF", expanded=True):
+                binary_data = uploaded_file.getvalue()
+                pdf_viewer(input=binary_data, width=700)
+
+        elif file_type.startswith("image/"):
+            st.subheader("Image Preview")
+            with st.expander("View Image", expanded=True):
+                # Save to temp file
+                suffix = "." + uploaded_file.name.split(".")[-1]
+                with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp_file:
+                    tmp_file.write(uploaded_file.getvalue())
+                    tmp_path = tmp_file.name
+
+                # Display using your image_viewer
+                image_viewer([tmp_path], ncol=3, nrow=2, key="image_viewer")
 
 # Check if a new file is uploaded
 if uploaded_file is not None:
@@ -89,48 +103,27 @@ if st.session_state.invoice_data is not None:
     # Extracted fields with bounding boxes
     st.subheader("Extracted fields")
     try:
-        with st.spinner("Processing field detection..."):
-            # Reset file pointer
-            uploaded_file.seek(0)
-            layout = extract_doc_layout(uploaded_file.getvalue(), invoice_data)
-            
-            # Reset file pointer again
-            uploaded_file.seek(0)
-            output_pdf_path = draw_bounding_boxes(uploaded_file, layout)
-        
-        # Display PDF with bounding boxes
+        with st.spinner("Processing field detection…"):
+            pdf_like = get_pdf_like(uploaded_file)
+            layout = extract_doc_layout(pdf_like.getvalue(), invoice_data)
+
+            pdf_like.seek(0)
+            output_pdf_path = draw_bounding_boxes(pdf_like, layout)
+
         with st.expander("PDF with Detected Fields", expanded=True):
-            try:
-                # Convert PDF to images for display
-                images = convert_pdf_to_images(output_pdf_path)
-                
-                # Display images
-                for i, img_data in enumerate(images):
-                    st.image(img_data, caption=f"Page {i+1} - Fields highlighted in red", use_container_width=True)
-                
-                # Provide download button for the processed PDF
-                with open(output_pdf_path, "rb") as file:
-                    pdf_data = file.read()
-                
+            for i, img_bytes in enumerate(convert_pdf_to_images(output_pdf_path)):
+                st.image(img_bytes, caption=f"Page {i+1} – highlighted", use_container_width=True)
+
+            with open(output_pdf_path, "rb") as f:
                 st.download_button(
-                    label="Download PDF with Bounding Boxes",
-                    data=pdf_data,
-                    file_name=f"processed_{uploaded_file.name}",
-                    mime="application/pdf"
+                    "Download PDF with Bounding Boxes",
+                    f.read(),
+                    file_name=f"processed_{uploaded_file.name.rsplit('.',1)[0]}.pdf",
+                    mime="application/pdf",
                 )
-                
-            except Exception as e:
-                st.error(f"Error displaying PDF with bounding boxes: {str(e)}")
-            
-            finally:
-                # Clean up temporary file
-                try:
-                    os.unlink(output_pdf_path)
-                except:
-                    pass  # File might already be deleted
-    
+
     except Exception as e:
-        st.error(f"Error processing field detection: {str(e)}")
+        st.error(f"Error processing field detection: {e}")
 
     # Add download button for JSON
     st.download_button(

@@ -15,4 +15,5 @@ dependencies = [
     "pymupdf>=1.26.3",
     "azure-ai-documentintelligence>=1.0.2",
     "transliterate>=1.10.2",
+    "streamlit-image-viewer>=0.2.5",
 ]

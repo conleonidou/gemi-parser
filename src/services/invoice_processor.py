@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 from azure.ai.documentintelligence import DocumentIntelligenceClient
 from azure.core.credentials import AzureKeyCredential
 from transliterate import translit
+from src.utils.helpers import convert_image_to_pdf
 
 # Load environment variables from .env file
 load_dotenv()
@@ -53,23 +54,29 @@ def extract_structured_data(file_path: str, model: BaseModel):
     return response.parsed
 
 def process_invoice(uploaded_file):
-    """Process the uploaded invoice PDF"""
+    """Process the uploaded invoice PDF or image"""
     try:
         with st.spinner('Processing invoice...'):
-            # Save uploaded file to temporary file
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp_file:
-                tmp_file.write(uploaded_file.getvalue())
-                tmp_file_path = tmp_file.name
-            
-            # Extract data from PDF
-            invoice_data = extract_structured_data(tmp_file_path, Invoice)
-            
-            # Clean up temporary file
-            os.unlink(tmp_file_path)
-            
+            suffix = uploaded_file.name.split('.')[-1].lower()
+
+            if suffix in ['jpeg', 'jpg', 'png']:
+                # Convert image to proper PDF
+                pdf_path = convert_image_to_pdf(uploaded_file)
+            else:
+                # Save uploaded PDF as-is
+                with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp_file:
+                    tmp_file.write(uploaded_file.getvalue())
+                    pdf_path = tmp_file.name
+
+            # Extract structured data from PDF
+            invoice_data = extract_structured_data(pdf_path, Invoice)
+
+            # Clean up
+            os.unlink(pdf_path)
+
             return invoice_data
     except Exception as e:
-        st.error(f"Error processing the PDF: {str(e)}")
+        st.error(f"Error processing the file: {str(e)}")
         return None
     
 def string_similarity(s1, s2):

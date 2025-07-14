@@ -203,6 +203,7 @@ dependencies = [
     { name = "pydantic" },
     { name = "pymupdf" },
     { name = "streamlit" },
+    { name = "streamlit-image-viewer" },
     { name = "streamlit-pdf-viewer" },
     { name = "transliterate" },
 ]
@@ -217,6 +218,7 @@ requires-dist = [
     { name = "pydantic", specifier = ">=2.11.7" },
     { name = "pymupdf", specifier = ">=1.26.3" },
     { name = "streamlit", specifier = ">=1.46.1" },
+    { name = "streamlit-image-viewer", specifier = ">=0.2.5" },
     { name = "streamlit-pdf-viewer", specifier = ">=0.0.26" },
     { name = "transliterate", specifier = ">=1.10.2" },
 ]
@@ -1215,6 +1217,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/bd/7e/c7499c447b7021657fa5c851091072c1c7a26f1dda0369c21c0243fc35e7/streamlit-1.46.1.tar.gz", hash = "sha256:2cc4ad01cfeded9ad953a21829eb879b90aa77af4068c68397411c2d5c8862cf", size = 9651018, upload-time = "2025-06-26T16:03:05.66Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/84/3b/35400175788cdd6a43c90dce1e7f567eb6843a3ba0612508c0f19ee31f5f/streamlit-1.46.1-py3-none-any.whl", hash = "sha256:dffa373230965f87ccc156abaff848d7d731920cf14106f3b99b1ea18076f728", size = 10051346, upload-time = "2025-06-26T16:03:02.934Z" },
+]
+
+[[package]]
+name = "streamlit-image-viewer"
+version = "0.2.5"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "streamlit" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/90/a9/d6c166b0d306c272da4a78eb9ce204c5ff50a3f0905b327b38871e23fbe4/streamlit_image_viewer-0.2.5.tar.gz", hash = "sha256:9f45a30bce582f6f45ecd9fa75f70adc533cce8b17eff93c374810ec9bf8ef96", size = 1276880, upload-time = "2023-10-19T05:24:25.159Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/81/dc/e1d8aa968d0a61ec4605a6e6c1e971e9eba82c2cc06827b0ec8bad358922/streamlit_image_viewer-0.2.5-py3-none-any.whl", hash = "sha256:b3c893706bb021c57b7130a336ad87face894f4a470bf583008ea2b2741b9ca2", size = 1288669, upload-time = "2023-10-19T05:24:22.811Z" },
 ]
 
 [[package]]
